@@ -2,6 +2,9 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { SITE } from '../data/site';
 import { CATEGORIES } from '../data/products';
+import { PRESS_SORTED, dayLabel } from '../data/press';
+
+const latest = PRESS_SORTED.slice(0, 4);
 ---
 <BaseLayout
   title="易采通｜湖南省集采集供平台 · 全生物降解产品一站式采购"
@@ -120,6 +123,24 @@ import { CATEGORIES } from '../data/products';
     </div>
   </section>
 
+  <!-- 最新动态 -->
+  <section class="band alt">
+    <div class="container">
+      <h2 class="sec">最新动态</h2>
+      <p class="sec-sub">政策、现场核查与标准的最新进展，每条标注发布机构，可点开原文核对。</p>
+      <div class="news-mini">
+        {latest.map((it) => (
+          <a class="nm" href={it.url ?? it.inner?.href ?? '/news/'} target={it.url ? '_blank' : undefined} rel={it.url ? 'noopener nofollow' : undefined}>
+            <span class="nm-date">{it.date.slice(0, 4)}.{dayLabel(it.date)}</span>
+            <span class="nm-tag">{it.tag}</span>
+            <span class="nm-title">{it.title}</span>
+          </a>
+        ))}
+      </div>
+      <p style="margin-top:18px"><a href="/news/" class="btn ghost">查看全部动态</a></p>
+    </div>
+  </section>
+
   <!-- CTA -->
   <section class="cta-band">
     <div class="container">
@@ -129,3 +150,31 @@ import { CATEGORIES } from '../data/products';
     </div>
   </section>
 </BaseLayout>
+
+<style>
+  .news-mini { display: flex; flex-direction: column; background: #fff; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .nm { display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-bottom: 1px solid var(--line); color: inherit; }
+  .nm:last-child { border-bottom: none; }
+  .nm:hover { background: var(--brand-soft); text-decoration: none; }
+  .nm-date { font-size: 13.5px; font-weight: 700; color: var(--brand-deep); font-variant-numeric: tabular-nums; white-space: nowrap; min-width: 96px; }
+  .nm-tag { font-size: 12px; line-height: 1; padding: 4px 8px; border-radius: 4px; background: #fdeee2; color: #a84a08; font-weight: 600; white-space: nowrap; }
+  .nm-title { font-size: 14.5px; color: #333; }
+  @media (max-width: 620px) {
+    .nm { flex-wrap: wrap; gap: 8px 10px; padding: 13px 14px; }
+    .nm-title { width: 100%; line-height: 1.6; }
+  }
+</style>
+
+<style>
+  .news-mini { display: flex; flex-direction: column; background: #fff; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .nm { display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-bottom: 1px solid var(--line); color: inherit; }
+  .nm:last-child { border-bottom: none; }
+  .nm:hover { background: var(--brand-soft); text-decoration: none; }
+  .nm-date { font-size: 13.5px; font-weight: 700; color: var(--brand-deep); font-variant-numeric: tabular-nums; white-space: nowrap; min-width: 96px; }
+  .nm-tag { font-size: 12px; line-height: 1; padding: 4px 8px; border-radius: 4px; background: #fdeee2; color: #a84a08; font-weight: 600; white-space: nowrap; }
+  .nm-title { font-size: 14.5px; color: #333; }
+  @media (max-width: 620px) {
+    .nm { flex-wrap: wrap; gap: 8px 10px; padding: 13px 14px; }
+    .nm-title { width: 100%; line-height: 1.6; }
+  }
+</style>

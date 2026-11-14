@@ -26,6 +26,7 @@ export const NAV = [
   { href: '/model/', label: '集采集供' },
   { href: '/inspection/', label: '核查实录' },
   { href: '/policy/', label: '禁塑政策' },
+  { href: '/news/', label: '行业动态' },
   { href: '/dealers/', label: '经销合作' },
   { href: '/about/', label: '关于易采通' },
 ] as const;

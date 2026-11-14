@@ -1,0 +1,157 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../data/site';
+import { PRESS_SORTED, PRESS_UPDATED, groupByYear, dayLabel } from '../data/press';
+
+const groups = groupByYear(PRESS_SORTED);
+const count = PRESS_SORTED.length;
+
+const tagClass: Record<string, string> = {
+  政策: 't-policy',
+  核查: 't-check',
+  标准: 't-std',
+  数据: 't-data',
+  行业: 't-ind',
+};
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: '塑料污染治理动态｜政策、核查与标准更新',
+  description:
+    '收录国家部委、湖南省与长沙市发布的塑料污染治理政策、现场核查通报与标准更新，每条标注发布机构与原文链接。',
+  url: `${SITE.url}/news/`,
+  dateModified: PRESS_UPDATED,
+  isPartOf: { '@type': 'WebSite', name: SITE.name, url: SITE.url },
+  mainEntity: {
+    '@type': 'ItemList',
+    numberOfItems: count,
+    itemListElement: PRESS_SORTED.map((it, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      item: {
+        '@type': 'CreativeWork',
+        name: it.title,
+        datePublished: it.date.length === 7 ? `${it.date}-01` : it.date,
+        publisher: { '@type': 'Organization', name: it.source },
+        ...(it.url ? { url: it.url } : {}),
+      },
+    })),
+  },
+};
+---
+<BaseLayout
+  title="塑料污染治理动态｜政策·核查·标准更新"
+  description="持续更新的塑料污染治理动态：国家与湖南省禁限塑政策文件、长沙市季度现场核查通报、可降解制品标准与全省监管数据。每条标注发布机构并附原文链接，采购人可逐条核对，判断自己所在领域是否已到禁用时点。"
+  breadcrumbs={[{ name: '首页', url: '/' }, { name: '行业动态', url: '/news/' }]}
+  active="/news/"
+  jsonLd={jsonLd}
+>
+  <section class="band">
+    <div class="container">
+      <h1 class="sec">动态：政策、核查、标准，一条一条跟到底</h1>
+      <p class="sec-sub">
+        这里收录与塑料污染治理、可降解制品合规采购直接相关的公开信息——国家部委与湖南省、长沙市的政策文件、现场核查通报、标准更新与监管数据。
+        每条都标注发布机构，能点开原文的附原文链接；查不到出处的消息我们不上。
+      </p>
+
+      <div class="stdbar" style="margin-top:20px">
+        <b>已收录 {count} 条</b>　·　最近核对 <b>{PRESS_UPDATED.replaceAll('-', '.')}</b>　·　
+        来源：国家发展改革委 / 生态环境部 / 商务部 / 湖南省发改委 / 长沙市发改委
+      </div>
+
+      {groups.map((g) => (
+        <>
+          <div class="yr">
+            <span class="yr-num">{g.year}</span>
+            <span class="yr-line"></span>
+            <span class="yr-count">{g.list.length} 条</span>
+          </div>
+          {g.list.map((it) => (
+            <article class="pi">
+              <div class="pi-head">
+                <time datetime={it.date}>{dayLabel(it.date)}</time>
+                <span class={`tag ${tagClass[it.tag] ?? ''}`}>{it.tag}</span>
+                {it.docNo && <span class="docno">{it.docNo}</span>}
+              </div>
+              <h3>{it.title}</h3>
+              <p>{it.summary}</p>
+              <div class="pi-meta">
+                <span>来源：{it.source}</span>
+                {it.url && (
+                  <a href={it.url} target="_blank" rel="noopener nofollow">查看原文 →</a>
+                )}
+                {it.inner && <a href={it.inner.href}>{it.inner.label} →</a>}
+              </div>
+            </article>
+          ))}
+        </>
+      ))}
+
+      <p class="note">
+        说明：本页只做信息汇总，政策执行以发布机构的最新原文为准。政府文件原件（含联系人信息）不在本站公开，
+        如需某份文件的全文或核查记录，可联系平台索取。收录与核对由平台运营团队负责，页面随政策发布与核查通报更新。
+      </p>
+    </div>
+  </section>
+
+  <section class="band alt">
+    <div class="container">
+      <h2 class="sec">政策会变，合规采购的判断方法不变</h2>
+      <p class="sec-sub">三看：看执行标准、看检测报告、看监管码。任何一轮核查，查的都是这三件事。</p>
+      <div class="grid grid-3">
+        <div class="card">
+          <h3>看执行标准</h3>
+          <p>餐饮具认 GB/T 18006.3-2020，购物袋认 GB/T 38082-2019，垃圾袋认 GB/T 28018-2011。</p>
+          <a class="more" href="/policy/">政策与标准 →</a>
+        </div>
+        <div class="card">
+          <h3>看核查实录</h3>
+          <p>三轮市级现场核查的实拍、文号与负面清单要点，公开可查。</p>
+          <a class="more" href="/inspection/">核查实录 →</a>
+        </div>
+        <div class="card">
+          <h3>看备案名录</h3>
+          <p>平台已备案生产企业名录与备案产品，逐条可核对。</p>
+          <a class="more" href="/quality/">溯源与品控 →</a>
+        </div>
+      </div>
+      <p style="margin-top:20px">
+        <a href="/contact/" class="btn primary">咨询合规采购</a>
+        <a href={`tel:${SITE.phone.replaceAll('-', '')}`} class="btn ghost" style="margin-left:12px">服务热线 {SITE.phone}</a>
+      </p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .yr { display: flex; align-items: center; gap: 14px; margin: 36px 0 16px; }
+  .yr:first-of-type { margin-top: 28px; }
+  .yr-num { font-size: 22px; font-weight: 800; color: var(--brand-deep); letter-spacing: .04em; }
+  .yr-line { flex: 1; height: 1px; background: var(--line); }
+  .yr-count { font-size: 13px; color: var(--muted); }
+
+  .pi { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 20px 22px; margin-bottom: 14px; }
+  .pi-head { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+  .pi-head time { font-size: 14px; font-weight: 700; color: var(--brand-deep); font-variant-numeric: tabular-nums; }
+  .tag { font-size: 12px; line-height: 1; padding: 4px 8px; border-radius: 4px; font-weight: 600; }
+  .t-policy { background: #fdeee2; color: #a84a08; }
+  .t-check { background: #e6f0f8; color: #1c5c86; }
+  .t-std { background: #ebf2e4; color: #47662c; }
+  .t-data { background: #f1edf7; color: #57467a; }
+  .t-ind { background: #eeeeee; color: #555; }
+  .docno { font-size: 12px; color: var(--muted); }
+
+  .pi h3 { font-size: 17px; margin: 10px 0 8px; line-height: 1.5; }
+  .pi p { margin: 0; color: var(--muted); font-size: 14.5px; line-height: 1.8; }
+  .pi-meta { margin-top: 13px; padding-top: 11px; border-top: 1px dashed var(--line); display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 13px; color: var(--muted); }
+  .pi-meta a { color: var(--brand-dark); font-weight: 600; }
+
+  .note { margin-top: 28px; font-size: 13.5px; color: var(--muted); line-height: 1.85; border-left: 3px solid var(--line); padding-left: 14px; }
+
+  @media (max-width: 620px) {
+    .pi { padding: 16px 16px; }
+    .pi h3 { font-size: 16px; }
+    .pi-meta { gap: 6px 14px; }
+  }
+</style>
