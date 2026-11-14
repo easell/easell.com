@@ -1,0 +1,13 @@
+[Unit]
+Description=SSL 证书守护（自动续期 + 生效校验 + 企微告警）
+Documentation=file:///var/www/easell/docs/03-部署与运维.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/easell/bin/ssl-guard.sh
+TimeoutStartSec=3600
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7

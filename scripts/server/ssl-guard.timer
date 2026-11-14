@@ -1,0 +1,12 @@
+[Unit]
+Description=每 6 小时执行 SSL 证书守护
+
+[Timer]
+# 一天 4 次：证书剩余不足 30 天时，等于每天最多 16 次续期尝试（应对跨境链路抖动）
+OnCalendar=*-*-* 00,06,12,18:17
+RandomizedDelaySec=300
+Persistent=true
+AccuracySec=1min
+
+[Install]
+WantedBy=timers.target
