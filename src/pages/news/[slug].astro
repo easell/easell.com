@@ -1,0 +1,234 @@
+---
+// 动态详情页：/news/<slug>/
+// 一条动态 = 一个可被检索、可被引用的独立页面。摘要负责列表页，正文负责长尾。
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { SITE } from '../../data/site';
+import { PRESS_SORTED, PRESS_UPDATED, fullDate, isoDate, pressNeighbors } from '../../data/press';
+
+export async function getStaticPaths() {
+  return PRESS_SORTED.map((it) => ({ params: { slug: it.slug }, props: { item: it } }));
+}
+
+const { item } = Astro.props;
+const { newer, older } = pressNeighbors(item.slug);
+
+const tagClass: Record<string, string> = {
+  政策: 't-policy',
+  核查: 't-check',
+  标准: 't-std',
+  数据: 't-data',
+  行业: 't-ind',
+};
+
+/** 百度摘要一般显示 78 汉字左右，超长按标点截断，不要硬切半个词 */
+function clip(text: string, max = 78) {
+  if (text.length <= max) return text;
+  const cut = text.slice(0, max);
+  const at = Math.max(cut.lastIndexOf('。'), cut.lastIndexOf('；'), cut.lastIndexOf('，'));
+  return (at > max * 0.6 ? cut.slice(0, at) : cut) + '…';
+}
+
+const path = `/news/${item.slug}/`;
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: item.title,
+  description: item.summary,
+  datePublished: isoDate(item.date),
+  dateModified: PRESS_UPDATED,
+  inLanguage: 'zh-CN',
+  articleSection: `${item.tag}动态`,
+  keywords: [item.tag, '塑料污染治理', '禁限塑', '可降解制品', item.source].join(','),
+  mainEntityOfPage: { '@type': 'WebPage', '@id': `${SITE.url}${path}` },
+  author: { '@type': 'Organization', name: `${SITE.name}运营团队`, url: SITE.url },
+  publisher: {
+    '@type': 'Organization',
+    name: SITE.legalName,
+    url: SITE.url,
+    logo: { '@type': 'ImageObject', url: `${SITE.url}/img/logo.png` },
+  },
+  isPartOf: { '@type': 'CollectionPage', name: '塑料污染治理动态', url: `${SITE.url}/news/` },
+  about: { '@type': 'Thing', name: '塑料污染治理' },
+  ...(item.url ? { citation: { '@type': 'CreativeWork', name: item.title, url: item.url, publisher: { '@type': 'Organization', name: item.source } } } : {}),
+};
+---
+<BaseLayout
+  title={`${item.title}｜易采通`}
+  description={clip(item.summary)}
+  canonical={path}
+  ogType="article"
+  breadcrumbs={[
+    { name: '首页', url: '/' },
+    { name: '行业动态', url: '/news/' },
+    { name: item.title, url: path },
+  ]}
+  active="/news/"
+  jsonLd={jsonLd}
+>
+  <section class="band">
+    <div class="container narrow">
+      <article class="art">
+        <div class="art-meta">
+          <time datetime={isoDate(item.date)}>{fullDate(item.date)}</time>
+          <span class={`tag ${tagClass[item.tag] ?? ''}`}>{item.tag}</span>
+          {item.docNo && <span class="docno">{item.docNo}</span>}
+        </div>
+
+        <h1>{item.title}</h1>
+        <p class="lead">{item.summary}</p>
+
+        {item.sections.map((s) => (
+          <section class="s">
+            <h2>{s.h}</h2>
+            {s.p?.map((t) => <p>{t}</p>)}
+            {s.ul && (
+              <ul>
+                {s.ul.map((t) => <li>{t}</li>)}
+              </ul>
+            )}
+          </section>
+        ))}
+
+        <div class="src">
+          <h2>依据与出处</h2>
+          <dl>
+            <dt>发布机构</dt>
+            <dd>{item.source}</dd>
+            {item.docNo && (
+              <>
+                <dt>文号 / 依据</dt>
+                <dd>{item.docNo}</dd>
+              </>
+            )}
+            <dt>发布时间</dt>
+            <dd>{fullDate(item.date)}</dd>
+            <dt>本站核对</dt>
+            <dd>{fullDate(PRESS_UPDATED)}</dd>
+            {item.url && (
+              <>
+                <dt>原文</dt>
+                <dd>
+                  <a href={item.url} target="_blank" rel="noopener nofollow">查看发布机构原文 →</a>
+                </dd>
+              </>
+            )}
+          </dl>
+          <p class="disc">
+            本文的事实部分引用自上述公开信息，解读与采购建议为平台专业意见，不代表发布机构立场；
+            政策执行以主管部门最新原文为准。本站不公开含个人信息的政府文件扫描件。
+          </p>
+        </div>
+
+        {item.inner && (
+          <p class="inner">
+            继续看：<a href={item.inner.href}>{item.inner.label} →</a>
+          </p>
+        )}
+
+        <nav class="pager" aria-label="上下篇">
+          {older ? (
+            <a class="pg prev" href={`/news/${older.slug}/`}>
+              <span>更早一条</span>
+              <b>{older.title}</b>
+            </a>
+          ) : (
+            <span />
+          )}
+          {newer ? (
+            <a class="pg next" href={`/news/${newer.slug}/`}>
+              <span>更新一条</span>
+              <b>{newer.title}</b>
+            </a>
+          ) : (
+            <span />
+          )}
+        </nav>
+
+        <p class="back">
+          <a href="/news/">← 返回行业动态（共 {PRESS_SORTED.length} 条）</a>
+        </p>
+      </article>
+    </div>
+  </section>
+
+  <section class="band alt">
+    <div class="container">
+      <h2 class="sec">这类文件，最终都要落到一张进货单上</h2>
+      <p class="sec-sub">政策看的是文本，核查看的是证据：执行标准、检测报告、备案与监管码，缺一项就会被追问。</p>
+      <div class="grid grid-3">
+        <div class="card">
+          <h3>看政策节奏</h3>
+          <p>国家与湖南的禁限时点、区域与业态差异，一张表对号入座。</p>
+          <a class="more" href="/policy/">禁塑政策 →</a>
+        </div>
+        <div class="card">
+          <h3>看核查实录</h3>
+          <p>三轮市级现场核查的组织方式、检查项与负面清单要点。</p>
+          <a class="more" href="/inspection/">核查实录 →</a>
+        </div>
+        <div class="card">
+          <h3>看备案名录</h3>
+          <p>已备案生产企业与产品，逐条可核对，采购前先查一遍。</p>
+          <a class="more" href="/quality/">溯源与品控 →</a>
+        </div>
+      </div>
+      <p style="margin-top:20px">
+        <a href="/contact/#inquiry" class="btn primary">咨询合规采购</a>
+        <a href={`tel:${SITE.phone.replaceAll('-', '')}`} class="btn ghost" style="margin-left:12px">服务热线 {SITE.phone}</a>
+      </p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .container.narrow { max-width: 820px; }
+
+  .art { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 38px 44px 34px; }
+  .art-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; font-size: 13.5px; color: var(--muted); }
+  .art-meta time { font-weight: 700; color: var(--brand-deep); font-variant-numeric: tabular-nums; }
+  .tag { font-size: 12px; line-height: 1; padding: 4px 8px; border-radius: 4px; font-weight: 600; }
+  .t-policy { background: #fdeee2; color: #a84a08; }
+  .t-check { background: #e6f0f8; color: #1c5c86; }
+  .t-std { background: #ebf2e4; color: #47662c; }
+  .t-data { background: #f1edf7; color: #57467a; }
+  .t-ind { background: #eeeeee; color: #555; }
+
+  .art h1 { font-size: 27px; line-height: 1.45; margin: 14px 0 16px; letter-spacing: .01em; }
+  .art .lead { font-size: 16px; line-height: 1.9; color: #3f382f; background: var(--brand-soft); border-left: 3px solid var(--brand); padding: 16px 18px; border-radius: 0 8px 8px 0; margin: 0 0 8px; }
+
+  .art .s { margin-top: 30px; }
+  .art .s h2 { font-size: 18.5px; margin: 0 0 12px; padding-left: 12px; border-left: 3px solid var(--brand); line-height: 1.4; }
+  .art .s p { margin: 0 0 14px; font-size: 15.5px; line-height: 1.95; color: #3f382f; }
+  .art .s ul { margin: 0 0 6px; padding-left: 0; list-style: none; }
+  .art .s li { position: relative; padding-left: 20px; margin-bottom: 10px; font-size: 15.5px; line-height: 1.85; color: #3f382f; }
+  .art .s li::before { content: ''; position: absolute; left: 4px; top: 11px; width: 6px; height: 6px; border-radius: 50%; background: var(--brand); }
+
+  .src { margin-top: 34px; background: #faf7f3; border: 1px solid var(--line); border-radius: 10px; padding: 20px 22px; }
+  .src h2 { font-size: 16px; margin: 0 0 12px; }
+  .src dl { margin: 0; display: grid; grid-template-columns: 88px 1fr; gap: 8px 14px; font-size: 14px; }
+  .src dt { color: var(--muted); }
+  .src dd { margin: 0; color: #3f382f; }
+  .src .disc { margin: 14px 0 0; font-size: 13px; line-height: 1.8; color: var(--muted); }
+
+  .inner { margin: 22px 0 0; font-size: 15px; }
+  .inner a { font-weight: 600; }
+
+  .pager { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 30px; padding-top: 22px; border-top: 1px solid var(--line); }
+  .pg { display: block; border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; color: inherit; }
+  .pg:hover { border-color: var(--brand); text-decoration: none; }
+  .pg span { display: block; font-size: 12.5px; color: var(--muted); margin-bottom: 6px; }
+  .pg b { font-size: 14.5px; line-height: 1.55; font-weight: 600; color: var(--brand-deep); }
+  .pg.next { text-align: right; }
+
+  .back { margin: 24px 0 0; font-size: 14px; }
+
+  @media (max-width: 620px) {
+    .art { padding: 24px 18px 22px; border-radius: 10px; }
+    .art h1 { font-size: 21px; }
+    .art .s h2 { font-size: 17px; }
+    .art .s p, .art .s li { font-size: 15px; line-height: 1.9; }
+    .src dl { grid-template-columns: 1fr; gap: 4px; }
+    .pager { grid-template-columns: 1fr; }
+    .pg.next { text-align: left; }
+  }
+</style>

@@ -17,6 +17,8 @@ interface Props {
   breadcrumbs?: Crumb[];
   active?: string;
   preloadImage?: string;
+  /** og:type —— 内容型页面（动态详情/文章）用 article，其余保持 website */
+  ogType?: 'website' | 'article';
 }
 
 const {
@@ -29,6 +31,7 @@ const {
   breadcrumbs,
   active,
   preloadImage,
+  ogType = 'website',
 } = Astro.props;
 
 const site = Astro.site ?? new URL(SITE.url);
@@ -124,7 +127,7 @@ const allLd = [orgLd, websiteLd, ...(crumbLd ? [crumbLd] : []), ...pageLd];
     <link rel="canonical" href={canonicalAbs} />
     {noindex ? <meta name="robots" content="noindex, follow" /> : <meta name="robots" content="index, follow, max-image-preview:large" />}
     <meta name="theme-color" content="#f57921" />
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={ogType} />
     <meta property="og:site_name" content={`${SITE.name}｜${SITE.tagline}`} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />

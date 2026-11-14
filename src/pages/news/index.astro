@@ -1,7 +1,7 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import { SITE } from '../data/site';
-import { PRESS_SORTED, PRESS_UPDATED, groupByYear, dayLabel } from '../data/press';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { SITE } from '../../data/site';
+import { PRESS_SORTED, PRESS_UPDATED, groupByYear, dayLabel, isoDate } from '../../data/press';
 
 const groups = groupByYear(PRESS_SORTED);
 const count = PRESS_SORTED.length;
@@ -30,11 +30,12 @@ const jsonLd = {
       '@type': 'ListItem',
       position: i + 1,
       item: {
-        '@type': 'CreativeWork',
+        '@type': 'Article',
         name: it.title,
-        datePublished: it.date.length === 7 ? `${it.date}-01` : it.date,
+        headline: it.title,
+        url: `${SITE.url}/news/${it.slug}/`,
+        datePublished: isoDate(it.date),
         publisher: { '@type': 'Organization', name: it.source },
-        ...(it.url ? { url: it.url } : {}),
       },
     })),
   },
@@ -74,12 +75,13 @@ const jsonLd = {
                 <span class={`tag ${tagClass[it.tag] ?? ''}`}>{it.tag}</span>
                 {it.docNo && <span class="docno">{it.docNo}</span>}
               </div>
-              <h3>{it.title}</h3>
+              <h3><a href={`/news/${it.slug}/`}>{it.title}</a></h3>
               <p>{it.summary}</p>
               <div class="pi-meta">
+                <a class="rd" href={`/news/${it.slug}/`}>读解读 →</a>
                 <span>来源：{it.source}</span>
                 {it.url && (
-                  <a href={it.url} target="_blank" rel="noopener nofollow">查看原文 →</a>
+                  <a href={it.url} target="_blank" rel="noopener nofollow">查看原文 ↗</a>
                 )}
                 {it.inner && <a href={it.inner.href}>{it.inner.label} →</a>}
               </div>
@@ -143,9 +145,13 @@ const jsonLd = {
   .docno { font-size: 12px; color: var(--muted); }
 
   .pi h3 { font-size: 17px; margin: 10px 0 8px; line-height: 1.5; }
+  .pi h3 a { color: var(--brand-deep); }
+  .pi h3 a:hover { color: var(--brand-dark); text-decoration: underline; }
   .pi p { margin: 0; color: var(--muted); font-size: 14.5px; line-height: 1.8; }
   .pi-meta { margin-top: 13px; padding-top: 11px; border-top: 1px dashed var(--line); display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 13px; color: var(--muted); }
   .pi-meta a { color: var(--brand-dark); font-weight: 600; }
+  .pi-meta a.rd { color: #fff; background: var(--brand); padding: 5px 12px; border-radius: 999px; font-size: 12.5px; }
+  .pi-meta a.rd:hover { background: var(--brand-dark); text-decoration: none; }
 
   .note { margin-top: 28px; font-size: 13.5px; color: var(--muted); line-height: 1.85; border-left: 3px solid var(--line); padding-left: 14px; }
 
