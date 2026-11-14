@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import InquiryForm from '../components/InquiryForm.astro';
 import { SITE } from '../data/site';
 ---
 <BaseLayout
@@ -48,10 +49,22 @@ import { SITE } from '../data/site';
           <a href={`tel:${SITE.phone.replace(/-/g, '')}`} style="color:inherit;text-decoration:none">{SITE.phone}</a>
         </p>
         <p style="color:var(--muted);font-size:13.5px;margin:6px 0 18px">{SITE.phoneNote}，转经销合作</p>
-        <div style="display:flex;gap:18px;align-items:center;border-top:1px dashed var(--line);padding-top:16px">
-          <img src="/img/qr-gzh.webp" alt="易采通微信公众号二维码" width="84" height="84" style="width:84px;height:84px" loading="lazy" />
-          <p style="margin:0;font-size:13.5px;color:var(--muted)">扫码关注公众号<br />回复「经销 + 城市 + 渠道类型」<br />我们按区域分配对接人</p>
+        <div style="border-top:1px dashed var(--line);padding-top:16px">
+          <p style="margin:0 0 10px;font-size:13.5px;color:var(--muted)">
+            不方便打电话？留言写清<strong>城市 + 渠道类型</strong>，我们按区域分配对接人。
+          </p>
+          <a href="#dealer-inquiry" class="btn ghost" style="padding:9px 20px;font-size:14.5px">在线留言</a>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band">
+    <div class="container">
+      <h2 class="sec">经销合作留言</h2>
+      <p class="sec-sub">留个联系方式，写清你在哪个城市、手上是什么渠道，一个工作日内有人对接。</p>
+      <div class="card" style="max-width:760px">
+        <InquiryForm id="dealer-inquiry" topic="经销合作" page="/dealers/" />
       </div>
     </div>
   </section>

@@ -19,10 +19,16 @@ const year = new Date().getFullYear();
           ))}
         </ul>
       </div>
-      <div class="qr">
-        <h4>关注我们</h4>
-        <img src="/img/qr-gzh.webp" alt="易采通微信公众号二维码" width="92" height="92" loading="lazy" />
-        <p style="margin-top:8px">微信公众号</p>
+      <div>
+        <h4>快速联系</h4>
+        <ul>
+          <li>服务热线　<a href={`tel:${SITE.phone.replace(/-/g, '')}`}>{SITE.phone}</a></li>
+          <li><a href="/contact/#inquiry"><b>在线留言</b></a>（一个工作日内回复）</li>
+          <li><a href="/quality/">溯源与品控</a></li>
+          <li><a href="/inspection/">核查实录</a></li>
+          <li><a href="/news/">行业动态</a></li>
+        </ul>
+        <p style="margin-top:10px;font-size:12.5px;line-height:1.7;color:#9c8f7d">{SITE.address}</p>
       </div>
     </div>
     <div class="legal">

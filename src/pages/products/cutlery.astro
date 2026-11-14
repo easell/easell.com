@@ -23,7 +23,7 @@ const c = CATEGORIES.find((x) => x.slug === 'cutlery')!;
         <h1 class="sec">{c.title}</h1>
         <p style="color:var(--muted)">{c.description}</p>
         <div class="stdbar" style="margin-top:18px"><b>执行标准：</b>{c.standards.join('；')}</div>
-        <p style="margin-top:18px"><a href="/contact/" class="btn primary">获取报价</a></p>
+        <p style="margin-top:18px"><a href="/contact/#inquiry" class="btn primary">获取报价</a></p>
       </div>
       <img src={c.image} alt={c.alt} width="750" height="440" />
     </div>
