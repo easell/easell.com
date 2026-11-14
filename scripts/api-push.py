@@ -27,7 +27,13 @@ sys.stdout.reconfigure(encoding="utf-8")
 
 REPO = os.environ.get("GIT_API_REPO", "easell/easell.com")
 BRANCH = os.environ.get("GIT_API_BRANCH", "main")
-PROXY = os.environ.get("GIT_API_PROXY") or None
+# 代理端口会随会话轮换：优先 GIT_API_PROXY，缺省回落到环境变量 HTTPS_PROXY（沙箱代理）
+PROXY = (
+    os.environ.get("GIT_API_PROXY")
+    or os.environ.get("HTTPS_PROXY")
+    or os.environ.get("https_proxy")
+    or None
+)
 DRY = "--dry-run" in sys.argv
 
 
