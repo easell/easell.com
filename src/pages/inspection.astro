@@ -1,0 +1,138 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../data/site';
+
+// 三轮核查（时间、依据文号均为通知原文可读信息；联系人等个人信息不上站）
+const rounds = [
+  {
+    tag: '第一轮',
+    name: '2022 年二季度现场核查',
+    time: '2022-08-09 / 08-10（2022-07-01 参加市发改委核查培训会议）',
+    basis: '长发改资环〔2022〕121 号',
+    photos: [
+      { src: '/img/event/insp-2022q2-training.webp', w: 800, h: 600, alt: '长沙市2022年度塑料污染治理现场核查培训会议（2022年7月1日）', cap: '核查培训会议：长沙市 2022 年度塑料污染治理现场核查培训（2022 年 7 月 1 日）' },
+      { src: '/img/event/insp-2022q2-screen.webp', w: 1200, h: 900, alt: '商场中庭大屏播放禁塑宣传「绿色发展始于心 全面禁塑践于行」', cap: '核查所到商场：中庭大屏播放禁塑宣传「绿色发展始于心 全面禁塑践于行」' },
+      { src: '/img/event/insp-2022q2-super.webp', w: 1200, h: 900, alt: '核查组在超市日用品区对照清单检查塑料制品', cap: '超市日用品区：核查组对照负面清单逐项检查塑料制品' },
+    ],
+  },
+  {
+    tag: '第二轮',
+    name: '2022 年第三、四季度现场核查',
+    time: '2023-01-04 / 01-05',
+    basis: '《2022 年长沙市进一步加强塑料污染治理工作方案》（长发改资环〔2022〕22 号）',
+    photos: [
+      { src: '/img/event/insp-2022q34-boxes.webp', w: 600, h: 800, alt: '核查组在餐饮商户检查植物纤维餐盒与打包盒', cap: '餐饮商户：核查植物纤维餐盒、可降解打包盒的标识与来源' },
+      { src: '/img/event/insp-2022q34-bookstore.webp', w: 1200, h: 900, alt: '核查组在书店前台核查一次性塑料制品使用情况', cap: '书店前台：核查组询问一次性塑料制品采购与使用情况' },
+    ],
+  },
+  {
+    tag: '第三轮',
+    name: '2023 年第一季度现场核查',
+    time: '2023-05-30 / 05-31',
+    basis: '《2023 年长沙市进一步加强塑料污染治理工作方案》（长发改资环〔2023〕20 号）',
+    photos: [
+      { src: '/img/event/insp-2023q1-market.webp', w: 1200, h: 900, alt: '核查组在商超收银区检查购物袋与塑料制品', cap: '商超收银区：重点核查购物袋等高频塑料制品' },
+    ],
+  },
+];
+
+const checklist = [
+  { place: '商场、超市、书店、药店', rules: '禁用不可降解塑料袋；禁售厚度小于 0.025 毫米的超薄塑料购物袋、厚度小于 0.01 毫米的聚乙烯农用地膜；禁售一次性塑料发泡餐具、一次性塑料棉签；禁售以医疗废物为原料生产的塑料制品。' },
+  { place: '餐饮行业', rules: '禁用不可降解一次性塑料吸管；堂食禁用不可降解一次性塑料餐具；外卖打包服务禁用不可降解塑料袋。' },
+  { place: '星级宾馆、酒店', rules: '不得主动提供一次性塑料用品（梳子、牙刷、浴帽等易耗塑料制品）。' },
+  { place: '公共机构', rules: '禁用不可降解一次性塑料餐盒、餐具、吸管；禁用一次性塑料水杯、饮料杯与超薄塑料购物袋；禁用含塑料微珠的日化产品。' },
+];
+---
+<BaseLayout
+  title="塑料污染治理现场核查实录｜易采通集采集供平台"
+  description="长沙市按季度开展塑料污染治理现场核查，覆盖商场、超市、书店、药店、餐饮、宾馆与公共机构。易采通作为联盟集采集供平台全程参与三轮核查，附核查负面清单要点与现场实拍。"
+  breadcrumbs={[{ name: '首页', url: '/' }, { name: '核查实录', url: '/inspection/' }]}
+  active="/inspection/"
+>
+  <section class="band">
+    <div class="container">
+      <h1 class="sec">核查实录：跟着市里的季度核查，把合规产品送到一线</h1>
+      <p class="sec-sub">
+        长沙市发展和改革委员会按年度工作方案组织塑料污染治理现场核查，市市场监管局、市生态环境局、市商务局与各区县（市）发改局联合参加。
+        易采通作为湖南省可降解塑料产业创新联盟的集采集供平台，全程参与并服务核查覆盖的终端场所。
+      </p>
+      <div class="steps" style="grid-template-columns:repeat(3,1fr);display:grid">
+        <div class="step"><h3>谁来查</h3><p>市发改委牵头，市市场监管局、市生态环境局、市商务局与区县（市）发改局组成联合核查组。</p></div>
+        <div class="step"><h3>查什么</h3><p>对照现场核查负面清单，逐项检查禁限塑料制品的使用与销售，核对产品标识与执行标准。</p></div>
+        <div class="step"><h3>多久查</h3><p>按季度滚动开展：2022 年二季度起已连续组织多轮，覆盖全市主要消费场所。</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 三轮核查 -->
+  <section class="band alt">
+    <div class="container">
+      <h2 class="sec">三轮核查，一路同行</h2>
+      <p class="sec-sub">以下时间与依据文件均来自公开核查通知（标题与文号引用，原件不上站）。照片为核查现场实拍。</p>
+
+      {rounds.map((r) => (
+        <div class="card" style="margin-bottom:26px">
+          <h3 style="margin:0 0 6px">{r.tag}：{r.name}</h3>
+          <p style="margin:0 0 4px;font-size:14px;color:var(--muted)">
+            <b style="color:var(--brand-deep)">核查时间：</b>{r.time}
+          </p>
+          <p style="margin:0 0 14px;font-size:14px;color:var(--muted)">
+            <b style="color:var(--brand-deep)">依据文件：</b>{r.basis}
+          </p>
+          <div class="grid" style={`grid-template-columns:repeat(${r.photos.length > 2 ? 3 : 2},1fr);gap:14px`}>
+            {r.photos.map((p) => (
+              <figure style="padding:0;overflow:hidden;margin:0;border:1px solid var(--line);border-radius:10px;background:#fff">
+                <img src={p.src} alt={p.alt} width={p.w} height={p.h} loading="lazy" style="width:100%;height:auto;display:block" />
+                <figcaption style="padding:10px 14px;font-size:13px;color:var(--muted);border-top:1px solid var(--line)">{p.cap}</figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      <p class="stdbar" style="margin-top:6px">
+        公共机构（学校）、商超货架、零售药店等更多核查实拍，见<a href="/model/" style="color:var(--brand-deep)"><b>「集采集供」</b></a>页「库存怎么定」区块。
+      </p>
+    </div>
+  </section>
+
+  <!-- 负面清单 -->
+  <section class="band">
+    <div class="container">
+      <h2 class="sec">核查查什么：现场核查负面清单要点</h2>
+      <p class="sec-sub">
+        整理自《长沙市 2023 年第一季度塑料污染治理现场核查负面清单》附件。清单按场所列明禁止使用与销售的产品，并对应执行标准
+        （GB/T 20197-2006《降解塑料的定义、分类、标志和降解性能要求》、GB/T 38082-2019《生物降解塑料购物袋》、GB/T 21661-2020《塑料购物袋》等）。
+      </p>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead>
+            <tr><th style="width:190px">场所</th><th>主要禁止事项</th></tr>
+          </thead>
+          <tbody>
+            {checklist.map((c) => (
+              <tr><td><b>{c.place}</b></td><td>{c.rules}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p style="margin-top:16px;font-size:14px;color:var(--muted)">
+        对照清单，采购合规产品是每个终端场所的必答题——这正是<a href="/products/" style="color:var(--brand-deep)"><b>产品中心</b></a>里每件带备案标识产品的价值所在。
+        相关政策背景见<a href="/policy/" style="color:var(--brand-deep)"><b>禁塑政策</b></a>页。
+      </p>
+    </div>
+  </section>
+
+  <section class="band alt">
+    <div class="container" style="text-align:center">
+      <h2 class="sec">经得起核查的供应商，才进得了平台</h2>
+      <p class="sec-sub" style="max-width:640px;margin:0 auto">
+        平台按品类甄选生产商并统一备案、统一检测，产品从出厂起就在监管视野内。采购方无需自行鉴别真伪。
+      </p>
+      <p style="margin-top:18px">
+        <a href="/products/" class="btn primary">浏览备案产品</a>
+        <a href="/dealers/" class="btn ghost" style="margin-left:12px">经销合作</a>
+      </p>
+    </div>
+  </section>
+</BaseLayout>

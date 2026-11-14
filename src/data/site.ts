@@ -24,6 +24,7 @@ export const NAV = [
   { href: '/products/', label: '产品中心' },
   { href: '/quality/', label: '溯源与品控' },
   { href: '/model/', label: '集采集供' },
+  { href: '/inspection/', label: '核查实录' },
   { href: '/policy/', label: '禁塑政策' },
   { href: '/dealers/', label: '经销合作' },
   { href: '/about/', label: '关于易采通' },
