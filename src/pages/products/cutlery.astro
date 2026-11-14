@@ -20,7 +20,7 @@ const c = CATEGORIES.find((x) => x.slug === 'cutlery')!;
   <section class="band">
     <div class="container" style="display:grid;grid-template-columns:1fr 1fr;gap:36px;align-items:center">
       <div>
-        <h2 class="sec">{c.title}</h2>
+        <h1 class="sec">{c.title}</h1>
         <p style="color:var(--muted)">{c.description}</p>
         <div class="stdbar" style="margin-top:18px"><b>执行标准：</b>{c.standards.join('；')}</div>
         <p style="margin-top:18px"><a href="/contact/" class="btn primary">获取报价</a></p>
@@ -54,6 +54,27 @@ const c = CATEGORIES.find((x) => x.slug === 'cutlery')!;
           ))}
         </tbody>
       </table>
+    </div>
+  </section>
+
+  <section class="band">
+    <div class="container">
+      <h2 class="sec">相关产品</h2>
+      <p class="sec-sub">同属一次性可降解餐饮具与制品，可合并下单、统一配送。</p>
+      <div class="grid grid-4">
+        {CATEGORIES.filter((x) => x.slug !== 'cutlery').map((x) => (
+          <div class="card">
+            <img src={x.image} alt={x.alt} width="800" height="800" loading="lazy" />
+            <h3>{x.name}</h3>
+            <a class="more" href={`/products/${x.slug}/`}>查看品类 →</a>
+          </div>
+        ))}
+        <div class="card">
+          <h3>产品中心</h3>
+          <p>查看全部品类与执行标准。</p>
+          <a class="more" href="/products/">返回产品中心 →</a>
+        </div>
+      </div>
     </div>
   </section>
 </BaseLayout>

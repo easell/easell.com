@@ -50,6 +50,8 @@ nav.main a[aria-current="page"] { color: var(--brand-dark); font-weight: 600; }
 section.band { padding: 56px 0; }
 section.band.alt { background: var(--paper); }
 h2.sec { font-size: 26px; margin: 0 0 8px; letter-spacing: .02em; }
+/* 页面级 H1：视觉与 h2.sec 一致，不改变版式，只补语义层次 */
+h1.sec { font-size: 26px; font-weight: 700; line-height: 1.32; margin: 0 0 8px; letter-spacing: .02em; }
 p.sec-sub { color: var(--muted); margin: 0 0 30px; font-size: 15px; }
 .grid { display: grid; gap: 20px; }
 .grid-2 { grid-template-columns: repeat(2, 1fr); }

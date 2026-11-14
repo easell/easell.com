@@ -6,3 +6,4 @@ dist/
 
 # 本地私有文件（不进仓库）
 .deploy-hook-id
+scripts/.cf_api_token
