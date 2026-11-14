@@ -142,6 +142,8 @@ form.inquiry .btn { margin-top: 18px; width: 100%; }
   .hero .container { grid-template-columns: 1fr; gap: 26px; }
   .hero h1 { font-size: 30px; }
   .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  /* 内联样式的双/多栏栅格在窄屏统一折叠为单栏（修正移动端挤压） */
+  .band [style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
   .trust .container { grid-template-columns: repeat(2, 1fr); }
   .contact-cards { grid-template-columns: 1fr; }
   footer.site .cols { grid-template-columns: 1fr; }
