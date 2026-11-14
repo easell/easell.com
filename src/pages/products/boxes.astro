@@ -5,7 +5,7 @@ const c = CATEGORIES.find((x) => x.slug === 'boxes')!;
 ---
 <BaseLayout
   title="可降解打包盒、分格餐盒批发｜方型·圆形·分格沙拉盒"
-  description="易采通可降解打包盒与分格餐盒：方型/圆形打包盒、分格餐盒、分格沙拉盒，适合外卖打包、商超熟食与团餐场景，执行 GB/T 18006.3-2020，支持定制印 LOGO。批发咨询 0731-88766800。"
+  description="易采通可降解打包盒与分格餐盒：方型、圆形打包盒与分格沙拉盒，适合外卖打包、商超熟食与团餐，执行 GB/T 18006.3-2020，支持定制印 LOGO。"
   breadcrumbs={[{ name: '首页', url: '/' }, { name: '产品中心', url: '/products/' }, { name: '打包盒与分格餐盒', url: '/products/boxes/' }]}
   active="/products/"
   jsonLd={{
@@ -15,6 +15,11 @@ const c = CATEGORIES.find((x) => x.slug === 'boxes')!;
     brand: { '@type': 'Brand', name: '翠上' },
     category: '一次性可降解餐饮具',
     description: c.description,
+    image: 'https://www.easell.com' + c.image,
+    material: ['聚乳酸（PLA）', 'PBAT', '淀粉基'],
+    countryOfOrigin: 'CN',
+    additionalProperty: c.standards.map((s) => ({ '@type': 'PropertyValue', name: '执行标准', value: s })),
+    manufacturer: { '@type': 'Organization', name: '湖南易采通供应链有限公司', url: 'https://www.easell.com' },
   }}
 >
   <section class="band">

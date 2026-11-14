@@ -1,4 +1,19 @@
 User-agent: *
 Allow: /
+Disallow: /api/
+Disallow: /404.html
+
+# 百度
+User-agent: Baiduspider
+Allow: /
+Disallow: /api/
+
+# 搜狗
+User-agent: Sogou web spider
+Allow: /
+
+# 360
+User-agent: 360Spider
+Allow: /
 
 Sitemap: https://www.easell.com/sitemap-index.xml

@@ -5,7 +5,7 @@ const c = CATEGORIES.find((x) => x.slug === 'cutlery')!;
 ---
 <BaseLayout
   title="可降解刀叉勺、吸管批发｜淀粉基餐具·纸吸管·PLA 吸管"
-  description="易采通可降解餐具：玉米淀粉基刀叉勺、纸吸管与 PLA 吸管（单支独立包装、尖口设计），适配奶茶、咖啡与快餐场景，执行 GB/T 18006.3-2020，支持 LOGO 定制。批发咨询 0731-88766800。"
+  description="易采通可降解餐具：玉米淀粉基刀叉勺、纸吸管与 PLA 吸管，单支独立包装、尖口设计，适配奶茶咖啡与快餐，执行 GB/T 18006.3-2020，支持 LOGO 定制。"
   breadcrumbs={[{ name: '首页', url: '/' }, { name: '产品中心', url: '/products/' }, { name: '刀叉勺与吸管', url: '/products/cutlery/' }]}
   active="/products/"
   jsonLd={{
@@ -15,6 +15,11 @@ const c = CATEGORIES.find((x) => x.slug === 'cutlery')!;
     brand: { '@type': 'Brand', name: '翠上' },
     category: '一次性可降解餐饮具',
     description: c.description,
+    image: 'https://www.easell.com' + c.image,
+    material: ['玉米淀粉基', '食品级纸', '聚乳酸（PLA）'],
+    countryOfOrigin: 'CN',
+    additionalProperty: c.standards.map((s) => ({ '@type': 'PropertyValue', name: '执行标准', value: s })),
+    manufacturer: { '@type': 'Organization', name: '湖南易采通供应链有限公司', url: 'https://www.easell.com' },
   }}
 >
   <section class="band">

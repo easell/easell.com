@@ -11,7 +11,15 @@ export default defineConfig({
     sitemap({
       filter: (page) => !page.includes('404'),
       serialize(item) {
-        item.lastmod = new Date().toISOString();
+        // lastmod 用「内容最后更新时间」而非构建时间：
+        // 用构建时间等于每次部署都告诉搜索引擎全站更新，会稀释抓取优先级。
+        item.lastmod = '2026-11-14';
+        const path = item.url.replace('https://www.easell.com', '') || '/';
+        if (path === '/') item.priority = 1.0;
+        else if (path.startsWith('/products')) item.priority = 0.9;
+        else if (['/quality/', '/model/', '/inspection/', '/policy/'].includes(path)) item.priority = 0.8;
+        else item.priority = 0.7;
+        item.changefreq = path === '/news/' ? 'weekly' : 'monthly';
         return item;
       },
     }),
