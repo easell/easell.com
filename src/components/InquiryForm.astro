@@ -25,6 +25,9 @@ const TOPICS = [
 ---
 <form class:list={['inquiry-form', { compact }]} id={id} method="post" action="/api/contact">
   <input type="hidden" name="page" value={page} />
+  <!-- 提交时由脚本回填：站外来路（搜索/外链）与站内浏览轨迹，服务端拼进企微消息 -->
+  <input type="hidden" name="ref" value="" />
+  <input type="hidden" name="trail" value="" />
 
   <div class="row">
     <div class="field">
@@ -91,6 +94,27 @@ const TOPICS = [
   </div>
   <p class="note">留言只用于本次咨询，不做营销推送，也不会提供给第三方。</p>
 </form>
+
+<script>
+  // 提交瞬间回填溯源字段；拿不到（禁 JS/旧浏览器）就保持空串，服务端自动省略
+  document.querySelectorAll('form.inquiry-form').forEach((f) => {
+    f.addEventListener('submit', () => {
+      try {
+        const set = (n, v) => {
+          const el = f.querySelector(`input[name="${n}"]`);
+          if (el) el.value = v;
+        };
+        const ref = sessionStorage.getItem('esRef') || '';
+        const trail = (JSON.parse(sessionStorage.getItem('esTrail') || '[]') || [])
+          .map((x) => x && x.p)
+          .filter(Boolean)
+          .join(' → ');
+        if (ref) set('ref', String(ref).slice(0, 300));
+        if (trail) set('trail', trail.slice(0, 500));
+      } catch {}
+    });
+  });
+</script>
 
 <style>
   .inquiry-form { display: grid; gap: 16px; }

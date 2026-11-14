@@ -166,5 +166,29 @@ const allLd = [orgLd, websiteLd, ...(crumbLd ? [crumbLd] : []), ...pageLd];
       <slot />
     </main>
     <SiteFooter />
+    <script>
+      // 询盘溯源：全站记录浏览轨迹（sessionStorage，会话结束即清空）
+      // InquiryForm 提交时读取 esTrail / esRef 一并送出，服务端拼进企微消息。
+      (() => {
+        try {
+          const KEY = 'esTrail';
+          const p = (location.pathname.replace(/\/index\.html?$/, '') || '/') ;
+          const list = JSON.parse(sessionStorage.getItem(KEY) || '[]');
+          if (!Array.isArray(list)) throw 0;
+          if (!list.length || list[list.length - 1].p !== p) list.push({ p, t: Date.now() });
+          while (list.length > 15) list.shift();
+          sessionStorage.setItem(KEY, JSON.stringify(list));
+          // 站外来路（百度搜索、外部链接）：每个会话只记第一次进入的来源
+          if (!sessionStorage.getItem('esRef') && document.referrer) {
+            try {
+              const host = new URL(document.referrer).hostname;
+              if (!/(^|\.)easell\.com$/.test(host)) {
+                sessionStorage.setItem('esRef', document.referrer);
+              }
+            } catch {}
+          }
+        } catch {}
+      })();
+    </script>
   </body>
 </html>

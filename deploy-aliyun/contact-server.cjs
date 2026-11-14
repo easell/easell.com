@@ -170,6 +170,8 @@ const server = http.createServer(async (req, res) => {
     topic: clean(form.topic, 60),
     message: clean(form.message, 800),
     from: clean(form.page, 120) || '/contact/',
+    ref: clean(form.ref, 300),
+    trail: clean(form.trail, 500),
     receivedAt: new Date(Date.now() + 8 * 3600 * 1000).toISOString().replace('T', ' ').slice(0, 16) + '（北京时间）',
   };
 
@@ -186,6 +188,10 @@ const server = http.createServer(async (req, res) => {
   }
 
   // 转发企微（errcode!==0 → 记日志，不丢单不阻塞）
+  // 溯源行：来源页必有；浏览轨迹/站外来路拿到才拼，方便按来路精准回复
+  const sourceLines = [`来源页：${lead.from}`];
+  if (lead.trail && lead.trail !== lead.from) sourceLines.push(`浏览轨迹：${lead.trail}`);
+  if (lead.ref) sourceLines.push(`站外来路：${lead.ref}`);
   const result = await forwardToWecom(
     `**官网在线留言 — 易采通**\n` +
     `姓名：${lead.name}\n` +
@@ -195,7 +201,7 @@ const server = http.createServer(async (req, res) => {
     `地区：${lead.region || '—'}\n` +
     `来意：${lead.topic}\n` +
     `说明：${lead.message || '—'}\n` +
-    `来源页：${lead.from}\n` +
+    sourceLines.join('\n') + '\n' +
     `时间：${lead.receivedAt}`
   );
   if (result.skipped) {

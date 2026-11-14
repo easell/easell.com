@@ -85,6 +85,8 @@ export async function onRequestPost({ request, env }) {
     topic: clean(form.get('topic'), 60),
     message: clean(form.get('message'), 800),
     from: clean(form.get('page'), 120) || '/contact/',
+    ref: clean(form.get('ref'), 300),
+    trail: clean(form.get('trail'), 500),
     receivedAt: new Date(Date.now() + 8 * 3600 * 1000).toISOString().replace('T', ' ').slice(0, 16) + '（北京时间）',
   };
 
@@ -114,7 +116,7 @@ export async function onRequestPost({ request, env }) {
       `地区：${lead.region || '—'}\n` +
       `来意：${lead.topic}\n` +
       `说明：${lead.message || '—'}\n` +
-      `来源页：${lead.from}\n` +
+      [`来源页：${lead.from}`, lead.trail && lead.trail !== lead.from ? `浏览轨迹：${lead.trail}` : '', lead.ref ? `站外来路：${lead.ref}` : ''].filter(Boolean).join('\n') + '\n' +
       `时间：${lead.receivedAt}`;
     try {
       const r = await fetch(webhook, {
