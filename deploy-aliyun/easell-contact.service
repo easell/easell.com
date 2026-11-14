@@ -1,0 +1,18 @@
+[Unit]
+Description= easell.com contact API (wecom forwarder)
+After=network.target
+
+[Service]
+Type=simple
+# ⚠️ webhook 值与 KYSON / YUHAO / Cloudflare 版同名同值（企业微信群机器人）
+Environment=WECOM_WEBHOOK_URL=填企微群机器人webhook地址
+Environment=PORT=8787
+Environment=ALLOWED_HOST=www.easell.com
+ExecStart=/usr/bin/node /opt/easell/contact-server.cjs
+Restart=always
+RestartSec=3
+StandardOutput=append:/var/log/easell-contact.log
+StandardError=append:/var/log/easell-contact.log
+
+[Install]
+WantedBy=multi-user.target
