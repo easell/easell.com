@@ -93,6 +93,10 @@ p.sec-sub { color: var(--muted); margin: 0 0 30px; font-size: 15px; }
 table.tbl { width: 100%; border-collapse: collapse; font-size: 14.5px; background: #fff; }
 table.tbl th, table.tbl td { border: 1px solid var(--line); padding: 10px 14px; text-align: left; vertical-align: top; }
 table.tbl th { background: var(--brand-soft); color: var(--brand-deep); font-weight: 600; white-space: nowrap; }
+table.tbl tbody tr:nth-child(even) { background: #fcfdfe; }
+/* 宽表在窄屏横向滚动，不挤压列宽 */
+.tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.tbl-wrap table.tbl { min-width: 660px; }
 
 /* 时间线 */
 .timeline { border-left: 3px solid var(--brand); margin: 0; padding: 0 0 0 22px; list-style: none; }

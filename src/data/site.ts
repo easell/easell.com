@@ -12,8 +12,8 @@ export const SITE = {
   uscc: '91430104MABEXYD64',
   // 注册地址（营业执照口径）
   address: '湖南省长沙市岳麓区学士街道学华村碧桂园（智慧园）30 栋 102',
-  phone: '400-0731-816',
-  phoneNote: '7×24 小时服务热线',
+  phone: '0731-88766800',
+  phoneNote: '服务热线',
   // 备案号（来源：易采通网站方案.doc 记载的旧站备案）
   icp: '湘ICP备2022019296号-1',
   groupUrl: 'https://yuhao.group',

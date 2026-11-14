@@ -1,11 +1,38 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../data/site';
+import { REGISTRY, REGISTRY_NOTE } from '../data/registry';
+
+const totalFilings = REGISTRY.reduce((s, e) => s + e.filings, 0);
+const provinces = new Set(REGISTRY.map((e) => e.province));
+const cities = new Set(REGISTRY.map((e) => `${e.province}${e.city}`));
+const filedCount = REGISTRY.filter((e) => e.filings > 0).length;
+
+// 名录结构化数据（ItemList）：让搜索引擎读到「备案企业名单」这一实体
+const registryLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: '易采通已备案生产企业名录',
+  description:
+    '经湖南省可降解塑料信息管理平台备案审核的可降解制品生产企业名录，含企业名称、备案产品与备案产地。',
+  numberOfItems: REGISTRY.length,
+  itemListElement: REGISTRY.map((e, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    item: {
+      '@type': 'Organization',
+      name: e.name,
+      description: `备案产品：${e.products}；备案产地：${e.province}${e.city}`,
+    },
+  })),
+};
 ---
 <BaseLayout
-  title="溯源与品控｜监管码追溯·四统一·检测报告"
-  description="易采通溯源与品控：依托湖南省可降解塑料信息管理平台，每件产品印有监管码、全流程追溯备案；四统一运营体系；合作厂家产品经具备 CMA/CNAS 资质机构检测，报告编号可查。"
+  title="溯源与品控｜备案企业名录·监管码与检测报告"
+  description={`易采通溯源与品控：${REGISTRY.length} 家已备案生产企业名录公开可查，每件产品印监管码全流程追溯，${totalFilings} 项产品完成备案，检测报告编号可核。`}
   breadcrumbs={[{ name: '首页', url: '/' }, { name: '溯源与品控', url: '/quality/' }]}
   active="/quality/"
+  jsonLd={registryLd}
 >
   <section class="band">
     <div class="container">
@@ -20,45 +47,109 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     </div>
   </section>
 
-  <section class="band alt">
+  <!-- 已备案企业名录 -->
+  <section class="band alt" id="registry">
     <div class="container">
-      <h2 class="sec">检测报告（编号可查）</h2>
-      <p class="sec-sub">以下为在库检测报告示例，报告均出自具备 CMA / CNAS 资质的检测机构（国家塑料制品质量监督检验中心（北京））。更多品类报告在库，可随订单索取。</p>
-      <table class="tbl">
-        <thead>
-          <tr><th>委托/生产企业</th><th>样品名称</th><th>报告编号</th><th>机构</th><th>日期</th></tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>长沙铭凯纸制品有限公司</td>
-            <td>无塑涂层纸杯、无塑涂层纸及制品</td>
-            <td><b>NTSQP[2021]C0001</b></td>
-            <td>国家塑料制品质量监督检验中心（北京）</td>
-            <td>2021-01-05</td>
-          </tr>
-          <tr>
-            <td>湖南绿斯达生物科技有限公司</td>
-            <td>全生物降解膜袋</td>
-            <td><b>国塑检[2021]C0432</b></td>
-            <td>同上</td>
-            <td>2021-05-12</td>
-          </tr>
-        </tbody>
-      </table>
-      <p style="color:var(--muted);font-size:13.5px;margin-top:12px">
-        说明：检测报告与所供批次对应，具体产品以出厂包装标注的执行标准与随货报告为准。
+      <h2 class="sec">已备案企业名录：{REGISTRY.length} 家生产企业</h2>
+      <p class="sec-sub">
+        以下企业已通过「{REGISTRY_NOTE.platform}」备案审核，产品经征集、审核、公示后进入备案名录。
+        本页只公开企业名称、备案产品与备案产地三组信息，联系人、电话等非公开字段一律不列。
+      </p>
+
+      <div class="trust" style="border-radius:10px;margin-bottom:26px">
+        <div class="container">
+          <div><b>{REGISTRY.length} 家</b><span>已备案生产企业</span></div>
+          <div><b>{totalFilings} 项</b><span>产品备案（审核通过）</span></div>
+          <div><b>8 类</b><span>备案产品大类</span></div>
+          <div><b>{provinces.size} 省 {cities.size} 市</b><span>备案产地覆盖</span></div>
+        </div>
+      </div>
+
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th style="width:36px">序</th>
+              <th>企业名称</th>
+              <th>备案产品（品牌）</th>
+              <th style="width:110px">备案产地</th>
+              <th style="width:92px">产品备案</th>
+            </tr>
+          </thead>
+          <tbody>
+            {REGISTRY.map((e, i) => (
+              <tr>
+                <td style="color:var(--muted)">{i + 1}</td>
+                <td><b>{e.name}</b></td>
+                <td style="font-size:13.5px;color:var(--muted)">{e.products}</td>
+                <td style="white-space:nowrap">{e.province}·{e.city}</td>
+                <td>{e.filings > 0 ? `${e.filings} 项` : '—'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="stdbar" style="margin-top:22px">
+        <b>名录口径：</b>企业状态为平台内「正常」，产品报备状态为「审核通过」，共 {filedCount} 家企业完成产品报备、合计 {totalFilings} 项。
+        「备案产地」为企业向平台备案的生产地址所在省市——部分企业为品牌方，生产由其备案工厂承担，因此产地与注册地可能不一致。
+        名录随平台备案状态更新；如需核验某家企业备案信息，可致电 {SITE.phone}。
+      </div>
+
+      <p style="margin-top:22px">
+        <a href="/contact/" class="btn primary">索取备案与检测报告</a>
+        <a href="/model/" class="btn ghost" style="margin-left:12px">集采集供怎么选厂家</a>
       </p>
     </div>
   </section>
 
   <section class="band">
     <div class="container">
+      <h2 class="sec">检测报告（编号可查）</h2>
+      <p class="sec-sub">以下为在库检测报告示例，报告均出自具备 CMA / CNAS 资质的检测机构（国家塑料制品质量监督检验中心（北京））。更多品类报告在库，可随订单索取。</p>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead>
+            <tr><th>委托/生产企业</th><th>样品名称</th><th>报告编号</th><th>机构</th><th>日期</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>长沙铭凯纸制品有限公司</td>
+              <td>无塑涂层纸杯、无塑涂层纸及制品</td>
+              <td><b>NTSQP[2021]C0001</b></td>
+              <td>国家塑料制品质量监督检验中心（北京）</td>
+              <td>2021-01-05</td>
+            </tr>
+            <tr>
+              <td>湖南绿斯达生物科技有限公司</td>
+              <td>全生物降解膜袋</td>
+              <td><b>国塑检[2021]C0432</b></td>
+              <td>同上</td>
+              <td>2021-05-12</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="color:var(--muted);font-size:13.5px;margin-top:12px">
+        说明：检测报告与所供批次对应，具体产品以出厂包装标注的执行标准与随货报告为准。
+      </p>
+    </div>
+  </section>
+
+  <section class="band alt">
+    <div class="container">
       <h2 class="sec">包装上的信息，就是品控承诺</h2>
-      <p class="sec-sub">易采通所售产品包装按要求标注以下内容——每一个字段都可以被追问。</p>
+      <p class="sec-sub">
+        按《可降解塑料制品的分类与标识规范指南》，可降解塑料的生物降解率应不低于 90%，并以文字标识与图形标识共同标明降解环境条件。
+        易采通所售产品包装按要求标注以下内容——每一个字段都可以被追问。
+      </p>
       <div class="grid grid-3">
         <div class="card"><h3>执行标准号</h3><p>按品类标注 GB/T 18006.3-2020、GB/T 38082-2019、GB/T 28018-2011 等。</p></div>
+        <div class="card"><h3>降解环境条件</h3><p>标明可土壤降解、可堆肥化降解、海洋环境降解、淡水环境降解、污泥厌氧消化或高固态厌氧消化，不笼统写「可降解」。</p></div>
+        <div class="card"><h3>材质与规格</h3><p>材质（如 PBAT、PLA、纸基涂层）、产品类型、长宽厚与重量等规格信息。</p></div>
         <div class="card"><h3>生产信息</h3><p>生产商、生产地址、生产批号、生产日期（见包装）、质保期。</p></div>
-        <div class="card"><h3>溯源与服务</h3><p>监管码/追溯码，以及 7×24 小时服务热线 400-0731-816。</p></div>
+        <div class="card"><h3>溯源与服务</h3><p>监管码/追溯码，以及 服务热线 {SITE.phone}。</p></div>
+        <div class="card"><h3>怎么自己核对</h3><p>看标准号是否对应品类、看降解率与降解条件是否写全、扫码查备案——三项对不上，先别买。</p></div>
       </div>
     </div>
   </section>
