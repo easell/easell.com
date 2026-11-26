@@ -1,18 +1,48 @@
 // Cloudflare Pages Function — POST /api/contact（易采通官网在线留言接收端点）
 // 与 YUHAO / KYSON 同一套留言系统（老板裁定「用同一套留言就行」）：
-// honeypot 防垃圾 → 同源校验 → 字段校验 → 转发企业微信群机器人 → 中文致谢页
+// honeypot 防垃圾 → 同源校验 → 字段校验 → 转发钉钉群机器人 → 中文致谢页
 // 字段为易采通访客口径：姓名/单位/手机/邮箱/地区/来意/说明（政企与零售都走这一个口）。
-// 环境变量（Pages 控制台 Settings → Variables，与 KYSON / YUHAO 同名同值）：
-//   WECOM_WEBHOOK_URL = 企业微信群机器人 webhook 地址
+// 环境变量（Pages 控制台 Settings → Variables，五站同名同值，一个群统接）：
+//   DINGTALK_WEBHOOK_URL = 钉钉群机器人 webhook（含 access_token）
+//   DINGTALK_SECRET      = 钉钉加签密钥（SEC 开头）
+//   WECOM_WEBHOOK_URL    = 企微兜底（仅钉钉未配置/被拒时用）
 // 未配置 webhook 时：仍返回致谢页，并把留言 console.log 到 Pages 部署日志，不阻塞访客。
 
-/** 清洗转企微 markdown 的文本：去反引号/方括号/引用符（防注入）、压空白、截断 */
+/** 清洗转群机器人 markdown 的文本：去反引号/方括号/引用符（防注入）、压空白、截断 */
 function clean(v, max = 500) {
   return String(v || '')
     .replace(/[`>[\]]/g, '')
     .replace(/\s+/g, ' ')
     .trim()
     .slice(0, max);
+}
+
+/** 钉钉加签：HMAC-SHA256(timestamp + "\n" + secret) → base64 → URLEncode（Web Crypto） */
+async function dingSignUrl(webhook, secret) {
+  const ts = String(Date.now());
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+  );
+  const sig = await crypto.subtle.sign('HMAC', key, enc.encode(ts + '\n' + secret));
+  let bin = '';
+  for (const b of new Uint8Array(sig)) bin += String.fromCharCode(b);
+  return `${webhook}${webhook.includes('?') ? '&' : '?'}timestamp=${ts}&sign=${encodeURIComponent(btoa(bin))}`;
+}
+
+/** 企微兜底转发（仅钉钉不可用时），避免切换期丢单 */
+async function forwardWecom(webhook, content, lead) {
+  try {
+    const r = await fetch(webhook, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ msgtype: 'markdown', markdown: { content } }),
+    });
+    const j = await r.json().catch(() => ({}));
+    if (j.errcode === 0) console.log('[fallback] WECOM forwarded ok');
+    else console.error('WECOM fallback REJECTED:', JSON.stringify(j), '— lead:', JSON.stringify(lead));
+  } catch (e) {
+    console.error('WECOM fallback failed:', e && e.message, '— lead:', JSON.stringify(lead));
+  }
 }
 
 function page(title, body, status = 200) {
@@ -104,38 +134,44 @@ export async function onRequestPost({ request, env }) {
     return page('邮箱格式不对', '<p>请返回检查邮箱地址是否正确，或改为填写手机号。</p>');
   }
 
-  // 转发企业微信群机器人（markdown 消息）
-  const webhook = env && env.WECOM_WEBHOOK_URL;
-  if (webhook) {
-    const content =
-      `**官网在线留言 — 易采通**\n` +
-      `姓名：${lead.name}\n` +
-      `单位：${lead.org || '—'}\n` +
-      `手机：${lead.phone || '—'}\n` +
-      `邮箱：${lead.email || '—'}\n` +
-      `地区：${lead.region || '—'}\n` +
-      `来意：${lead.topic}\n` +
-      `说明：${lead.message || '—'}\n` +
-      [`来源页：${lead.from}`, lead.trail && lead.trail !== lead.from ? `浏览轨迹：${lead.trail}` : '', lead.ref ? `站外来路：${lead.ref}` : ''].filter(Boolean).join('\n') + '\n' +
-      `时间：${lead.receivedAt}`;
+  // 转发钉钉群机器人（加签 + markdown）；钉钉不可用时退回企微兜底
+  const content =
+    `**官网在线留言 — 易采通**\n` +
+    `姓名：${lead.name}\n` +
+    `单位：${lead.org || '—'}\n` +
+    `手机：${lead.phone || '—'}\n` +
+    `邮箱：${lead.email || '—'}\n` +
+    `地区：${lead.region || '—'}\n` +
+    `来意：${lead.topic}\n` +
+    `说明：${lead.message || '—'}\n` +
+    [`来源页：${lead.from}`, lead.trail && lead.trail !== lead.from ? `浏览轨迹：${lead.trail}` : '', lead.ref ? `站外来路：${lead.ref}` : ''].filter(Boolean).join('\n') + '\n' +
+    `时间：${lead.receivedAt}`;
+  const dingHook = env && env.DINGTALK_WEBHOOK_URL;
+  const dingSecret = env && env.DINGTALK_SECRET;
+  let dingOk = false;
+  if (dingHook && dingSecret) {
     try {
-      const r = await fetch(webhook, {
+      const url = await dingSignUrl(dingHook, dingSecret);
+      const r = await fetch(url, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ msgtype: 'markdown', markdown: { content } }),
+        body: JSON.stringify({ msgtype: 'markdown', markdown: { title: 'Easell Contact', text: content } }),
       });
-      // 企微即使 key 失效也返回 HTTP 200，必须看 errcode，否则静默丢单
       const result = await r.json().catch(() => ({}));
-      if (result.errcode !== 0) {
-        console.error('WECOM forward REJECTED:', JSON.stringify(result), '— lead:', JSON.stringify(lead));
+      if (result.errcode === 0) {
+        dingOk = true;
+        console.log('[contact] DINGTALK ok:', lead.name, lead.org, lead.topic);
       } else {
-        console.log('[contact] forwarded ok:', lead.name, lead.org, lead.topic);
+        console.error('DINGTALK REJECTED:', JSON.stringify(result), '— lead:', JSON.stringify(lead));
       }
     } catch (e) {
-      console.error('WECOM forward failed:', e && e.message, '— lead:', JSON.stringify(lead));
+      console.error('DINGTALK failed:', e && e.message, '— lead:', JSON.stringify(lead));
     }
-  } else {
-    console.log('[contact] WECOM_WEBHOOK_URL not set. Lead:', JSON.stringify(lead));
+  }
+  if (!dingOk) {
+    const wecomHook = env && env.WECOM_WEBHOOK_URL;
+    if (wecomHook) await forwardWecom(wecomHook, content, lead);
+    else console.log('[contact] no webhook configured. Lead:', JSON.stringify(lead));
   }
 
   return page(

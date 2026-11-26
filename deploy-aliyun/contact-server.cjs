@@ -1,16 +1,20 @@
 // 易采通官网在线留言接收服务（阿里云 ECS 版）
 // 与 Cloudflare Pages Functions 版（functions/api/contact.js）同一套逻辑：
-// honeypot 防垃圾 → 同源校验 → 字段校验 → 转发企业微信群机器人 → 中文致谢页
-// 零 npm 依赖（内置 http/https + 自带 multipart 解析，表单无文件上传）。
-// 运行：WECOM_WEBHOOK_URL='https://qyapi.weixin.qq.com/...' PORT=8787 node contact-server.js
+// honeypot 防垃圾 → 同源校验 → 字段校验 → 转发钉钉群机器人 → 中文致谢页
+// 零 npm 依赖（内置 http/https/crypto + 自带 multipart 解析，表单无文件上传）。
+// 运行：DINGTALK_WEBHOOK_URL='https://oapi.dingtalk.com/robot/send?access_token=...' DINGTALK_SECRET='SEC...' PORT=8787 node contact-server.cjs
 // （生产用 systemd：deploy-aliyun/easell-contact.service）
+// 环境变量：DINGTALK_WEBHOOK_URL / DINGTALK_SECRET 为主；WECOM_WEBHOOK_URL 为企微兜底（钉钉不可用时）
 
 const http = require('http');
 const https = require('https');
+const crypto = require('crypto');
 const { URL } = require('url');
 
 const PORT = Number(process.env.PORT || 8787);
-const WEBHOOK = process.env.WECOM_WEBHOOK_URL || '';
+const DING_WEBHOOK = process.env.DINGTALK_WEBHOOK_URL || '';
+const DING_SECRET = process.env.DINGTALK_SECRET || '';
+const WECOM_WEBHOOK = process.env.WECOM_WEBHOOK_URL || '';
 const ALLOWED_HOST = process.env.ALLOWED_HOST || 'www.easell.com';
 const HOTLINE = '0731-88766800';
 
@@ -78,13 +82,12 @@ function parseMultipart(buf, contentType) {
   return fields;
 }
 
-/** 转发企业微信群机器人（markdown），errcode!==0 视为失败 */
-function forwardToWecom(content) {
+/** 通用 https POST JSON，返回解析后的响应对象 */
+function postJson(urlStr, payload) {
   return new Promise((resolve) => {
-    if (!WEBHOOK) return resolve({ skipped: true });
     try {
-      const u = new URL(WEBHOOK);
-      const body = JSON.stringify({ msgtype: 'markdown', markdown: { content } });
+      const u = new URL(urlStr);
+      const body = JSON.stringify(payload);
       const req = https.request(
         { hostname: u.hostname, path: u.pathname + u.search, method: 'POST',
           headers: { 'content-type': 'application/json', 'content-length': Buffer.byteLength(body) } },
@@ -103,6 +106,37 @@ function forwardToWecom(content) {
       resolve({ errcode: -1, errmsg: e.message });
     }
   });
+}
+
+/** 钉钉加签 URL：HMAC-SHA256(timestamp + "\n" + secret) → base64 → URLEncode（Node crypto） */
+function dingSignedUrl() {
+  const ts = String(Date.now());
+  const sign = encodeURIComponent(
+    crypto.createHmac('sha256', DING_SECRET).update(ts + '\n' + DING_SECRET).digest('base64')
+  );
+  return `${DING_WEBHOOK}${DING_WEBHOOK.includes('?') ? '&' : '?'}timestamp=${ts}&sign=${sign}`;
+}
+
+/** 转发到群机器人：钉钉为主，企微兜底；返回 {channel, ok} */
+async function forwardMessage(content) {
+  if (DING_WEBHOOK && DING_SECRET) {
+    const url = dingSignedUrl();
+    const j = await postJson(url, {
+      msgtype: 'markdown', markdown: { title: 'Easell Contact', text: content },
+    });
+    if (j.errcode === 0) return { channel: 'dingtalk', ok: true, result: j };
+    console.error('DINGTALK REJECTED:', JSON.stringify(j));
+    if (WECOM_WEBHOOK) {
+      const wj = await postJson(WECOM_WEBHOOK, { msgtype: 'markdown', markdown: { content } });
+      return { channel: 'wecom-fallback', ok: wj.errcode === 0, result: wj };
+    }
+    return { channel: 'dingtalk', ok: false, result: j };
+  }
+  if (WECOM_WEBHOOK) {
+    const wj = await postJson(WECOM_WEBHOOK, { msgtype: 'markdown', markdown: { content } });
+    return { channel: 'wecom-fallback', ok: wj.errcode === 0, result: wj };
+  }
+  return { channel: 'none', ok: false, skipped: true };
 }
 
 const server = http.createServer(async (req, res) => {
@@ -187,12 +221,12 @@ const server = http.createServer(async (req, res) => {
     return respond(page('邮箱格式不对', '<p>请返回检查邮箱地址是否正确，或改为填写手机号。</p>'));
   }
 
-  // 转发企微（errcode!==0 → 记日志，不丢单不阻塞）
+  // 转发群机器人：钉钉为主、企微兜底（errcode!==0 → 记日志，不丢单不阻塞）
   // 溯源行：来源页必有；浏览轨迹/站外来路拿到才拼，方便按来路精准回复
   const sourceLines = [`来源页：${lead.from}`];
   if (lead.trail && lead.trail !== lead.from) sourceLines.push(`浏览轨迹：${lead.trail}`);
   if (lead.ref) sourceLines.push(`站外来路：${lead.ref}`);
-  const result = await forwardToWecom(
+  const delivery = await forwardMessage(
     `**官网在线留言 — 易采通**\n` +
     `姓名：${lead.name}\n` +
     `单位：${lead.org || '—'}\n` +
@@ -204,12 +238,12 @@ const server = http.createServer(async (req, res) => {
     sourceLines.join('\n') + '\n' +
     `时间：${lead.receivedAt}`
   );
-  if (result.skipped) {
-    console.log('[contact] WECOM_WEBHOOK_URL not set. Lead:', JSON.stringify(lead));
-  } else if (result.errcode !== 0) {
-    console.error('WECOM forward REJECTED:', JSON.stringify(result), '— lead:', JSON.stringify(lead));
+  if (delivery.skipped) {
+    console.log('[contact] no webhook configured. Lead:', JSON.stringify(lead));
+  } else if (!delivery.ok) {
+    console.error(`[contact] ${delivery.channel} forward FAILED:`, JSON.stringify(delivery.result), '— lead:', JSON.stringify(lead));
   } else {
-    console.log('[contact] forwarded ok:', lead.name, lead.org, lead.topic);
+    console.log(`[contact] ${delivery.channel} forwarded ok:`, lead.name, lead.org, lead.topic);
   }
 
   respond(page('留言已收到',
@@ -217,5 +251,5 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, '127.0.0.1', () => {
-  console.log(`[contact-server] listening on 127.0.0.1:${PORT}, webhook ${WEBHOOK ? 'configured' : 'NOT SET'}`);
+  console.log(`[contact-server] listening on 127.0.0.1:${PORT}, webhook ${(DING_WEBHOOK || WECOM_WEBHOOK) ? 'configured' : 'NOT SET'}`);
 });

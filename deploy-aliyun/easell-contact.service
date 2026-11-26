@@ -1,10 +1,14 @@
 [Unit]
-Description= easell.com contact API (wecom forwarder)
+Description= easell.com contact API (dingtalk forwarder, wecom fallback)
 After=network.target
 
 [Service]
 Type=simple
-# ⚠️ webhook 值与 KYSON / YUHAO / Cloudflare 版同名同值（企业微信群机器人）
+# 主通道：钉钉群机器人（加签）。五站共用一个群，webhook + secret 成对配置。
+# ⚠️ 真实值只在服务器上填入，不要提交到 Git。systemd 中 ? & 建议用单引号包裹整值。
+Environment='DINGTALK_WEBHOOK_URL=填钉钉webhook地址'
+Environment='DINGTALK_SECRET=填SEC密钥'
+# 兜底：钉钉未配置或失败时退回企微（保留原值）
 Environment=WECOM_WEBHOOK_URL=填企微群机器人webhook地址
 Environment=PORT=8787
 Environment=ALLOWED_HOST=www.easell.com
